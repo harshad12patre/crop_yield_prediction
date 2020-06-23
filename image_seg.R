@@ -147,3 +147,6 @@ inspect_segmentation(rgb, rgb.segmented, rgb.proj)
 # inspect_segmentation(hats, hats.segmented, hats.proj)
 # dev.new()
 # inspect_segmentation(barn, barn.segmented, barn.proj)
+
+p1 <- rasterGrob(rgb)
+p1
