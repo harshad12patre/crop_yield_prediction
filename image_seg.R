@@ -130,7 +130,7 @@ rgb.proj = project2D_from_RGB(rgb.df)
 # mandrill.segmented = build_segmented_image(mandrill.df, mandrill)
 rgb.segmented = build_segmented_image(rgb.df, rgb)
 # hats.segmented = build_segmented_image(hats.df, hats)
-# barn.segmented = build_segmented_image(barn.df, barn)
+# barn.segmented = build_segmented_image(barn.df, barsn)
 
 # write the segmented images to disk
 # writePNG(mandrill.segmented, "mandrill_segmented.png" )
