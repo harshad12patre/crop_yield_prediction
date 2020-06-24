@@ -1,0 +1,1 @@
+dat <- read.csv("MOD13A1-006-Statistics.csv")
