@@ -8,6 +8,7 @@ library("graphics")
 library("grid")
 library("ggplot2")
 library("gridExtra")
+
 #######################################################################################
 # This script demonstrates a very simple image segmenter on color scheme
 #######################################################################################
@@ -102,51 +103,27 @@ inspect_segmentation <- function(image.raw, image.segmented, image.proj){
 ##############################################################
 # some interesting sample images -- download them if they aren't in the current working directory
 # if(!file.exists("mandrill.png")){
-  # download.file(url = "http://graphics.cs.williams.edu/data/images/mandrill.png", destfile="mandrill.png")
   download.file(url = "https://everyone.plos.org/wp-content/uploads/sites/5/2020/05/sorghum-300x200.jpg", destfile="RGB_illumination.jpg")
-  # download.file(url = "http://r0k.us/graphics/kodak/kodak/kodim03.png", destfile="kodim03.png")
-  # download.file(url = "http://r0k.us/graphics/kodak/kodak/kodim22.png", destfile="kodim22.png")
 # }
 
 # we can work with both JPEGs and PNGS.  For simplicty, we'll always write out to PNG though.
-# mandrill <- readPNG("mandrill.png")
-rgb <- readJPEG("RGB_illumination.jpg")
-# hats <- readPNG("kodim03.png")
-# barn <- readPNG("kodim22.png")
+rgb <- readJPEG("img1.jpg")
 
 # segment -- tune the number of segments for each image
-# mandrill.df = segment_image(mandrill, 7)
 rgb.df = segment_image(rgb, 12)
-# hats.df = segment_image(hats, 8)
-# barn.df = segment_image(barn, 10)
 
 # project RGB channels
-# mandrill.proj = project2D_from_RGB(mandrill.df)
 rgb.proj = project2D_from_RGB(rgb.df)
-# hats.proj = project2D_from_RGB(hats.df)
-# barn.proj = project2D_from_RGB(barn.df)
 
 # create segmented image data structure and write to disk
-# mandrill.segmented = build_segmented_image(mandrill.df, mandrill)
 rgb.segmented = build_segmented_image(rgb.df, rgb)
-# hats.segmented = build_segmented_image(hats.df, hats)
-# barn.segmented = build_segmented_image(barn.df, barsn)
 
 # write the segmented images to disk
-# writePNG(mandrill.segmented, "mandrill_segmented.png" )
 writePNG(rgb.segmented, "rgb_illumination_segmented.png")
-# writePNG(hats.segmented, "kodim03_segmented.png")
-# writePNG(barn.segmented, "kodim22_segmented.png")
 
 # inspect the results
-# dev.new()
-# inspect_segmentation(mandrill, mandrill.segmented, mandrill.proj)
 dev.new()
 inspect_segmentation(rgb, rgb.segmented, rgb.proj)
-# dev.new()
-# inspect_segmentation(hats, hats.segmented, hats.proj)
-# dev.new()
-# inspect_segmentation(barn, barn.segmented, barn.proj)
 
 p2 <- rasterGrob(rgb.segmented)
 p1 <- rasterGrob(rgb)
