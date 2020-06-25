@@ -8,6 +8,7 @@ library("graphics")
 library("grid")
 library("ggplot2")
 library("gridExtra")
+library("tidyverse")
 
 #######################################################################################
 # This script demonstrates a very simple image segmenter on color scheme
@@ -84,7 +85,7 @@ plot_projection <- function(df, sample.size){
   # plot the projection of the segmented image data in 2D, using the
   # mean segment colors as the colors for the points in the projection
   index = sample(1:nrow(df), sample.size)
-  return(ggplot(df[index,], aes(x=x, y=y, col=color)) + geom_point(size=2) + scale_color_identity())
+  return(ggplot(df[index,], aes(x=x, y=y, col=color)) + geom_point(size=1) + scale_color_identity())
 }
 
 #
@@ -107,7 +108,7 @@ inspect_segmentation <- function(image.raw, image.segmented, image.proj){
 # }
 
 # we can work with both JPEGs and PNGS.  For simplicty, we'll always write out to PNG though.
-rgb <- readJPEG("img1.jpg")
+rgb <- readJPEG("RGB_illumination.jpg")
 
 # segment -- tune the number of segments for each image
 rgb.df = segment_image(rgb, 12)
@@ -128,3 +129,11 @@ inspect_segmentation(rgb, rgb.segmented, rgb.proj)
 p2 <- rasterGrob(rgb.segmented)
 p1 <- rasterGrob(rgb)
 rgb.proj
+
+dat.proj <- rgb.proj %>% 
+  filter(G > R & G > B)
+dat.segmented = build_segmented_image(rgb.df, rgb)
+dev.new()
+inspect_segmentation(rgb, dat.segmented, dat.proj)
+
+sum(dat.proj$G)/(sum(rgb.proj$R)+sum(rgb.proj$G)+sum(rgb.proj$B))
