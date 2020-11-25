@@ -1,0 +1,165 @@
+---
+title: "Calculating Crop Percentages and Predicting Price"
+author: "Harshad B., Kuljot C. and Riya S."
+output: pdf_document
+---
+
+# PART 1 : Calculating Crop Percentages
+
+The dataset used in this example was obtained from <https://aps.dac.gov.in>. The dataset contains information of area under a crop and its production from 2010-2018 for all districts in the state of Maharashtra. The dataset contains a wide variety of crops.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+dataset <- read.csv("D:/project-alt/modded_dataset.csv")
+colnames(dataset) <- c("Crop","District","Year","Season","Area","Production","Yield")
+```
+``` {r dataset_head}
+head(dataset)
+```
+
+## Example 
+
+In this example, we will be looking at Ahmednagar district, and the season "Rabi" for the year 2010.
+
+```{r example}
+dist_in <- "Ahmednagar"
+season_in <- "Rabi"
+year_in <- 2010
+```   
+
+We will subset the dataset according to our inputs.
+
+```{r subset, include=FALSE}
+data_dist_year_season <- dataset %>%
+  filter(District == dist_in, Season == season_in, Year == year_in) %>%
+  select(Crop, Year, Season, `Area`, `Production`, Yield) %>%
+  mutate(Crop = as.factor(Crop))
+crop_unique <- as.vector(unique(data_dist_year_season$Crop))
+```
+
+We will write a function to calculate the percentages of crop under the particular selections.
+
+``` {r, include=FALSE}
+crop_percent <- function(x) {
+  dat <- data_dist_year_season %>%
+    filter(Crop == crop_unique[x])
+  prod_crop <- dat$Production
+  prod_total <- sum(data_dist_year_season$Production)
+  (prod_crop/prod_total)*100
+}
+
+ans <- sapply(c(1:length(crop_unique)), crop_percent)
+ans_df <- data.frame(Crop = crop_unique, Percent = ans)
+```
+
+Now, the results:
+```{r}
+ans_df %>% 
+  arrange(Percent, desc = TRUE)
+```
+
+# PART 2 : Predicting Crop Prices
+
+The dataset used in this example was obtained from <http://agmarknet.gov.in/>. The dataset contains information of the pricing of Bajra (Pearl Millets) in Nashik District and its various markets from 2010-2018 for all dates. The dataset contains minimum, maximum and modal prices of the Bajra crop in Nashik District for the given period.
+
+```{r setup1, include=FALSE}
+library(knitr)
+library(caret)
+library(tidyverse)
+library(data.table)
+library(shiny)
+library(tseries)
+library(xts)
+library(zoo)
+library(quantmod)
+library(neuralnet)
+
+suppressWarnings(set.seed(1, sample.kind = "Rounding"))
+
+#read data
+data <- read.csv("D:/r-projects/crop_yield_prediction/ds/agricultural_price.csv")
+```
+
+Now, we will take a sneak peek at the data and while also clean the data (pre-processing) and change market names to numerical values for easier handling of data.
+
+``` {r dataset_head1}
+#taking a look at data before preprocessing
+head(data)
+#convert dates from int to date
+data$Price.Date <- as.Date(as.character(data$Price.Date), "%d%m%Y")
+class(data$Price.Date)
+#remove NA dates
+data$Price.Date[as.character(data$Price.Date) == 'NA'] <- NA
+na_index <- which(is.na(data$Price.Date))
+data_new <- data[-na_index,]
+#change colnames
+data_new <- data_new %>%
+  rename(Sr.No = ï..Sr..No,
+         District = District.Name,
+         Market = Market.Name,
+         MinPrice = Min.Price..Rs..Quintal.,
+         MaxPrice = Max.Price..Rs..Quintal.,
+         ModalPrice = Modal.Price..Rs..Quintal.,
+         Date = Price.Date) %>%
+  mutate(Market = as.numeric(factor(Market))) %>%
+  select(Market, MinPrice, MaxPrice, ModalPrice, Date) %>%
+  arrange(Date)
+#take a peek at the dataframe
+head(data_new)
+```
+
+The market codes are as follows:
+``` {r}
+markets <- data.frame(Market = unique(data$Market.Name), Factor = 1:length(unique(data$Market.Name)))
+markets
+```
+
+## Example 
+
+In this example, we will be looking at Chandvad market.
+
+```{r example1}
+target_market <- 1 #Chandvad
+```   
+
+We will subset the dataset according to our inputs.
+
+```{r subset1, include=TRUE}
+tm_data <- data_new %>%
+  filter(Market == target_market)
+```
+
+We will train a neural network model with 15 hidden nodes and a threshold of 0.001.
+
+``` {r, include=FALSE}
+#extract values
+Modal_data <- (tm_data$ModalPrice)
+Max_data <- (tm_data$MaxPrice)
+Min_data <- (tm_data$MinPrice)
+#make datasets
+tm_df <- cbind(Max_data,Min_data,Modal_data)
+tm_actual <- data.frame(tm_df)
+train_price <- (tm_actual[-(nrow(tm_actual)),])
+trainingoutput_price <- as.data.frame(tm_actual[-1,3])
+#Column bind the data into one variable
+trainingdata_price <- as.data.frame(cbind(train_price,trainingoutput_price))
+```
+
+``` {r}
+net_price <- neuralnet(tm_actual[-1, 3] ~  Max_data + Min_data, data = trainingdata_price, err.fct = "sse", hidden = 15, threshold=0.001)
+```
+
+And extract the modal pricing of the latest date available to us in the dataset.
+```{r}
+testdata <- as.data.frame(tm_actual[nrow(tm_actual),])
+net.results <- neuralnet::compute(net_price, testdata)
+Predicted_Modal_Rate<- net.results$net.result
+Modal_rate<- Predicted_Modal_Rate[1,1]
+```
+
+Now, the results
+```{r}
+results <- data.frame(actual = testdata$Modal_data, prediction = net.results$net.result)
+results
+```
