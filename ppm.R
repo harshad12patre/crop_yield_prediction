@@ -42,6 +42,7 @@ train$Market <- as.numeric(factor(train$Market))
 mean_market <- train %>%
   group_by(Market) %>%
   summarise(MeanMP = mean(ModalPrice))
+target_market <- 2
 
 #target_market = tm
 tm_mean <- mean_market$MeanMP[mean_market$Market==target_market]
