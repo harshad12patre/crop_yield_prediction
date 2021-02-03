@@ -2,6 +2,8 @@ library(knitr)
 library(caret)
 library(tidyverse)
 library(data.table)
+library(rpart)
+library(randomForest)
 
 suppressWarnings(set.seed(123, sample.kind = "Rounding"))
 

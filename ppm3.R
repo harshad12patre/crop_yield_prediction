@@ -1,5 +1,5 @@
 library(knitr)
-library(caret)
+library(caret) 
 library(tidyverse)
 library(data.table)
 library(shiny)
@@ -7,6 +7,7 @@ library(tseries)
 library(xts)
 library(zoo)
 library(quantmod)
+library(neuralnet)
 
 suppressWarnings(set.seed(1, sample.kind = "Rounding"))
 
@@ -14,6 +15,7 @@ suppressWarnings(set.seed(1, sample.kind = "Rounding"))
 data <- read.csv("D:/r-projects/crop_yield_prediction/ds/agricultural_price.csv")
 
 #convert dates from int to date
+class(data$Price.Date)
 data$Price.Date <- as.Date(as.character(data$Price.Date), "%d%m%Y")
 class(data$Price.Date)
 
